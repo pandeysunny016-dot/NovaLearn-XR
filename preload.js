@@ -29,5 +29,8 @@ contextBridge.exposeInMainWorld('neuralverse', {
   saveFileDialog: (content, defaultName) => ipcRenderer.invoke('dialog:saveFile', { content, defaultName }),
 
   // ─── External Links ───────────────────────────────────────────
-  openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url)
+  openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+
+  // ─── AI Query API (Secure Backend IPC) ─────────────────────────
+  queryAI: (params) => ipcRenderer.invoke('ai:query', params)
 });

@@ -401,6 +401,87 @@ function registerIPCHandlers() {
     }
   });
 
+  // Safe AI query handler (keeps API keys and network calls securely in main process)
+  ipcMain.handle('ai:query', async (event, { provider, apiKey, endpoint, model, prompt }) => {
+    if (!prompt || typeof prompt !== 'string') {
+      return { success: false, error: 'Prompt is required' };
+    }
+
+    try {
+      const https = require('https');
+      const url = require('url');
+
+      let targetUrl = endpoint;
+      let headers = { 'Content-Type': 'application/json' };
+      let bodyData = {};
+
+      if (provider === 'openai') {
+        targetUrl = targetUrl || 'https://api.openai.com/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        bodyData = {
+          model: model || 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 600
+        };
+      } else if (provider === 'anthropic') {
+        targetUrl = targetUrl || 'https://api.anthropic.com/v1/messages';
+        headers['x-api-key'] = apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+        bodyData = {
+          model: model || 'claude-3-haiku-20240307',
+          max_tokens: 600,
+          messages: [{ role: 'user', content: prompt }]
+        };
+      } else {
+        // Generic custom HTTP endpoint
+        if (!targetUrl) return { success: false, error: 'No endpoint provided for custom provider' };
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        bodyData = { prompt, model };
+      }
+
+      const parsedUrl = new url.URL(targetUrl);
+      const postData = JSON.stringify(bodyData);
+      headers['Content-Length'] = Buffer.byteLength(postData);
+
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 443,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'POST',
+        headers: headers,
+        timeout: 10000
+      };
+
+      const responseText = await new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          let chunks = '';
+          res.on('data', (d) => { chunks += d; });
+          res.on('end', () => { resolve(chunks); });
+        });
+        req.on('error', (e) => { reject(e); });
+        req.on('timeout', () => { req.destroy(); reject(new Error('AI Request timed out')); });
+        req.write(postData);
+        req.end();
+      });
+
+      const parsedRes = JSON.parse(responseText);
+      let replyText = '';
+      if (parsedRes.choices && parsedRes.choices[0] && parsedRes.choices[0].message) {
+        replyText = parsedRes.choices[0].message.content;
+      } else if (parsedRes.content && Array.isArray(parsedRes.content) && parsedRes.content[0]) {
+        replyText = parsedRes.content[0].text;
+      } else if (parsedRes.reply) {
+        replyText = parsedRes.reply;
+      } else {
+        replyText = JSON.stringify(parsedRes);
+      }
+
+      return { success: true, reply: replyText };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
   // Reset all data
   ipcMain.handle('data:reset', () => {
     const result1 = writeJSON(DATA_FILE, getDefaultAppData());

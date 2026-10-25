@@ -525,6 +525,66 @@ const questionBank = {
       correct: 2,
       explanation: 'Unity ML-Agents supports Behavioral Cloning through its DemonstrationRecorder component and behavioral_cloning configuration, allowing agents to learn from recorded expert gameplay.'
     }
+  ],
+  'final': [
+    {
+      id: 'qf-1',
+      type: 'tf',
+      question: 'True or False: Tabular Q-Learning can scale directly to infinite continuous state-action spaces without neural networks.',
+      options: ['True', 'False'],
+      correct: 1,
+      explanation: 'False. Tabular Q-learning requires a finite lookup table. Continuous or high-dimensional spaces require function approximation like Deep Q-Networks (DQN) or PPO.'
+    },
+    {
+      id: 'qf-2',
+      type: 'code',
+      question: 'In C# for Unity, which lifecycle method should contain Rigidbody physics force applications like AddForce()?',
+      options: ['Update()', 'Awake()', 'FixedUpdate()', 'LateUpdate()'],
+      correct: 2,
+      explanation: 'FixedUpdate() runs at regular timed physics intervals (default 0.02s), ensuring consistent physics integration.'
+    },
+    {
+      id: 'qf-3',
+      type: 'mc',
+      question: 'What is the minimum recommended frame rate to sustain presence and minimize motion sickness in VR headsets?',
+      options: ['30 FPS', '60 FPS', '72-90 FPS', '144 FPS'],
+      correct: 2,
+      explanation: '72 to 90 FPS is the recognized threshold for VR to avoid visual-vestibular conflict.'
+    },
+    {
+      id: 'qf-4',
+      type: 'tf',
+      question: 'True or False: Google Cardboard native smartphone viewers provide 6 Degrees of Freedom (6DOF) tracking out of the box.',
+      options: ['True', 'False'],
+      correct: 1,
+      explanation: 'False. Cardboard uses the phone gyroscope and accelerometer, which provide 3DOF rotational tracking only.'
+    },
+    {
+      id: 'qf-5',
+      type: 'code',
+      question: 'In Unity C# scripting, what does Vector3.Lerp(a, b, t) calculate?',
+      options: [
+        'Linear interpolation between vector a and vector b by factor t',
+        'The dot product of vector a and vector b',
+        'The cross product of vector a and vector b',
+        'The euclidean distance between a and b'
+      ],
+      correct: 0,
+      explanation: 'Vector3.Lerp performs linear interpolation: a + (b - a) * t, widely used for smooth camera follow and character movement.'
+    },
+    {
+      id: 'qf-6',
+      type: 'mc',
+      question: 'What does the term "Distribution Shift" describe in Imitation Learning (Behavioral Cloning)?',
+      options: [
+        'Shift in server network latency during multiplayer VR',
+        'When an agent encounters unfamiliar states not in training demonstrations and compounding errors cause failure',
+        'Changing screen resolution on a mobile device',
+        'Moving GameObjects across scene hierarchies'
+      ],
+      correct: 1,
+      explanation: 'Distribution shift happens when minor model errors cause the agent to deviate into unvisited states where it lacks expert demonstrations.'
+    }
   ]
 };
 

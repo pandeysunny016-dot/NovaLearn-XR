@@ -47,16 +47,37 @@ class QuizEngine {
   submitQuiz() {
     if (!this.currentQuiz || this.currentQuiz.isSubmitted) return null;
 
+    const incorrectQuestions = [];
     let score = 0;
     this.currentQuiz.questions.forEach(q => {
       if (q.userSelection !== null && q.userSelection === q.correct) {
         score++;
+      } else {
+        incorrectQuestions.push({
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          correct: q.correct,
+          userSelection: q.userSelection,
+          explanation: q.explanation,
+          moduleId: this.currentQuiz.moduleId
+        });
       }
     });
 
     this.currentQuiz.score = score;
     this.currentQuiz.isSubmitted = true;
     this.currentQuiz.submittedAt = new Date().toISOString();
+    this.currentQuiz.incorrectQuestions = incorrectQuestions;
+
+    // Save incorrect questions into progress data for Revision
+    if (!this.progressManager.data.incorrectQuizAnswers) {
+      this.progressManager.data.incorrectQuizAnswers = [];
+    }
+    incorrectQuestions.forEach(iq => {
+      const exists = this.progressManager.data.incorrectQuizAnswers.find(x => x.id === iq.id);
+      if (!exists) this.progressManager.data.incorrectQuizAnswers.push(iq);
+    });
 
     const attempt = this.progressManager.recordQuizAttempt(
       this.currentQuiz.moduleId,
@@ -64,7 +85,8 @@ class QuizEngine {
       this.currentQuiz.total,
       {
         questionsCount: this.currentQuiz.total,
-        score
+        score,
+        incorrectCount: incorrectQuestions.length
       }
     );
 
@@ -73,8 +95,13 @@ class QuizEngine {
       total: this.currentQuiz.total,
       percentage: Math.round((score / this.currentQuiz.total) * 100),
       questions: this.currentQuiz.questions,
+      incorrectQuestions,
       attempt
     };
+  }
+
+  getIncorrectQuestions() {
+    return (this.currentQuiz && this.currentQuiz.incorrectQuestions) || [];
   }
 
   getCurrentState() {

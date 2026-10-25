@@ -5,13 +5,63 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node tests/test-runner.js"
+    "test": "node tests/test-runner.js",
+    "dist:mac": "electron-builder --mac dmg --arm64"
   },
-  "keywords": ["electron", "education", "vr", "ai", "reinforcement-learning", "unity", "nptel"],
+  "keywords": [
+    "electron",
+    "education",
+    "vr",
+    "ai",
+    "reinforcement-learning",
+    "unity",
+    "nptel"
+  ],
   "author": "NeuralVerse Team",
   "license": "MIT",
   "type": "commonjs",
+  "build": {
+    "appId": "com.neuralverse.studio",
+    "productName": "NeuralVerse",
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        "dmg"
+      ],
+      "identity": null
+    },
+    "dmg": {
+      "title": "NeuralVerse Interactive Studio",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "settings.html",
+      "settings.js",
+      "about.html",
+      "about.js",
+      "index.html",
+      "styles.css",
+      "src/**/*",
+      "unity-practicals/**/*",
+      "package.json"
+    ]
+  },
   "devDependencies": {
-    "electron": "^28.0.0"
+    "electron": "^28.0.0",
+    "electron-builder": "^26.18.0"
   }
 }

@@ -43,9 +43,17 @@
           <span class="nav-icon">🗒️</span>
           <span class="nav-text">Study Notes</span>
         </li>
+        <li class="nav-item" data-view="revision">
+          <span class="nav-icon">🔄</span>
+          <span class="nav-text">Revision & Mistakes</span>
+        </li>
+        <li class="nav-item" data-view="achievements">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-text">Achievements & XP</span>
+        </li>
         <li class="nav-item" data-view="unity-lab">
           <span class="nav-icon">⚡</span>
-          <span class="nav-text">Unity & Practical Lab</span>
+          <span class="nav-text">Unity Practical Lab</span>
         </li>
       </ul>
 
@@ -62,7 +70,7 @@
       <header class="topbar">
         <div class="search-box">
           <span>🔍</span>
-          <input type="text" id="global-search" placeholder="Search lessons, terms, modules...">
+          <input type="text" id="global-search" placeholder="Search lessons, terms, modules (Ctrl/Cmd+K)...">
         </div>
 
         <div class="topbar-actions">
@@ -71,6 +79,16 @@
             <span id="streak-count">1 Day Streak</span>
           </div>
 
+          <div class="badge-streak" style="background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); color: var(--accent-violet);">
+            <span>⭐</span>
+            <span id="header-xp-badge">0 XP (Lvl 1)</span>
+          </div>
+
+          <button class="btn btn-secondary" id="btn-toggle-ai" style="padding: 5px 12px; font-size: 12px; border-color: var(--accent-cyan); color: var(--accent-cyan);">
+            🤖 AI Tutor
+          </button>
+
+          <button class="icon-button" id="btn-toggle-theme" title="Toggle Light/Dark Theme">🌓</button>
           <button class="icon-button" id="btn-settings" title="Settings">⚙️</button>
           <button class="icon-button" id="btn-about" title="About NeuralVerse">ℹ️</button>
         </div>
@@ -120,6 +138,37 @@
             </div>
           </div>
 
+          <!-- Daily Goal & Weekly Activity Cards -->
+          <div class="grid-2" style="margin-bottom: 20px;">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <h3 style="font-size: 15px; color: #fff;">📊 Weekly Study Activity (Minutes)</h3>
+                <span id="dash-total-time" style="font-size: 12px; color: var(--accent-cyan);">Total: 0 mins</span>
+              </div>
+              <div class="chart-bar-container" id="dash-weekly-chart">
+                <!-- Bars Mon-Sun rendered dynamically -->
+              </div>
+            </div>
+
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                  <h3 style="font-size: 15px; color: #fff;">🎯 Daily Study Goal</h3>
+                  <span id="dash-goal-status" style="font-size: 12px; color: var(--accent-emerald);">0 / 30 mins</span>
+                </div>
+                <div class="progress-bar-container" style="margin: 12px 0 6px 0;">
+                  <div class="progress-bar-fill" id="dash-goal-bar" style="width: 0%;"></div>
+                </div>
+                <p style="font-size: 11px; color: var(--text-sub);">Studying lessons and testing quizzes automatically logs progress towards your daily goal.</p>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 10px;">
+                <span style="font-size: 12px; color: var(--text-muted);">Current XP Level:</span>
+                <span id="dash-level-display" style="font-size: 13px; font-weight:700; color:var(--accent-violet);">Level 1 Explorer</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Continue Learning & Recent Activity -->
           <div class="grid-2">
             <div class="card">
@@ -132,11 +181,12 @@
 
               <h3 style="font-size: 16px; margin: 24px 0 12px 0; color: #fff;">⚡ Quick Laboratory Launch</h3>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'cube' })">🧊 3D Cube Lab</button>
-                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'movement' })">🎮 C# Physics Lab</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'cube' })">🧊 3D Cube</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'csharp' })">💻 C# Playground</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'movement' })">🎮 C# Physics</button>
                 <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'ql' })">🧠 Q-Learning Grid</button>
-                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'wam' })">🎯 Whack-a-Mole VR</button>
-                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'vr' })">🥽 3DOF Gaze Lab</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'vr-space' })">🚀 360° VR Lab</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'wam' })">🎯 Whack-a-Mole</button>
               </div>
             </div>
 
@@ -207,10 +257,12 @@
               <h2 style="font-size: 22px; color: #fff;">Interactive Concept Laboratories</h2>
               <p style="color: var(--text-muted); font-size: 13px;">Real-time interactive simulations of 3D Transforms, C# movement, Q-Learning & Mobile VR.</p>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="btn btn-secondary" onclick="appController.loadSimulation('cube')">🧊 3D Transform</button>
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('csharp')">💻 C# Playground</button>
               <button class="btn btn-secondary" onclick="appController.loadSimulation('movement')">🎮 Player & Camera</button>
               <button class="btn btn-secondary" onclick="appController.loadSimulation('ql')">🧠 Tabular Q-Learning</button>
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('vr-space')">🚀 360° VR Lab</button>
               <button class="btn btn-secondary" onclick="appController.loadSimulation('wam')">🎯 Whack-a-Mole</button>
               <button class="btn btn-secondary" onclick="appController.loadSimulation('vr')">🥽 3DOF Reticle</button>
             </div>
@@ -235,6 +287,7 @@
                 <option value="mod2">Module 2: C# Programming & Interaction</option>
                 <option value="mod3">Module 3: Deep Reinforcement Learning</option>
                 <option value="mod4">Module 4: Mobile Virtual Reality</option>
+                <option value="final">🎓 Comprehensive Course Final Assessment</option>
               </select>
             </div>
 
@@ -329,8 +382,102 @@
             </div>
           </div>
         </section>
+
+        <!-- 8. REVISION & MISTAKES REVIEW -->
+        <section id="view-revision" class="view-section">
+          <div style="margin-bottom: 20px;">
+            <h2 style="font-size: 22px; color: #fff;">Revision & Missed Concepts</h2>
+            <p style="color: var(--text-muted); font-size: 13px;">Consolidate your learning: review incorrect quiz answers, pinned study notes, and key formulas.</p>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="font-size: 16px; color: var(--accent-rose);">❌ Missed Quiz Questions</h3>
+                <button class="btn btn-secondary" id="btn-clear-mistakes" style="font-size:11px; padding:3px 8px;">Clear List</button>
+              </div>
+              <div id="revision-mistakes-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto;">
+                <!-- Dynamically rendered mistakes -->
+              </div>
+            </div>
+
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="font-size: 16px; color: var(--accent-cyan);">⭐ Pinned Study Notes</h3>
+                <button class="btn btn-secondary" onclick="appController.notesManager.exportNotesMarkdown()" style="font-size:11px; padding:3px 8px;">Export Markdown</button>
+              </div>
+              <div id="revision-notes-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 480px; overflow-y: auto;">
+                <!-- Dynamically rendered pinned notes -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. ACHIEVEMENTS & GAMIFICATION -->
+        <section id="view-achievements" class="view-section">
+          <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(0,212,255,0.05));">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+              <div>
+                <h2 style="font-size: 22px; color: #fff;">Student Learning Milestones</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top:4px;">Earn Experience Points (XP), unlock ranks, and celebrate real educational milestones.</p>
+              </div>
+              <div style="display:flex; gap:16px; align-items:center;">
+                <div style="text-align:right;">
+                  <div style="font-size:22px; font-weight:700; color:var(--accent-cyan);" id="achieve-xp-total">0 XP</div>
+                  <div style="font-size:11px; color:var(--text-sub);">Total Accumulated XP</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:22px; font-weight:700; color:var(--accent-violet);" id="achieve-level-total">Level 1</div>
+                  <div style="font-size:11px; color:var(--text-sub);">Current Rank</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size: 16px; color: var(--accent-amber); margin-bottom: 6px;">🏅 Course Achievement Badges</h3>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">Badges unlock automatically when you achieve course milestones.</p>
+            <div class="badge-grid" id="achieve-badge-grid">
+              <!-- Dynamically rendered badge cards -->
+            </div>
+          </div>
+        </section>
       </div>
     </main>
+
+    <!-- Slide-in AI Assistant Drawer -->
+    <aside class="ai-drawer" id="ai-drawer">
+      <div class="ai-drawer-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:20px;">🤖</span>
+          <div>
+            <h3 style="font-size: 14px; color: #fff;">NeuralVerse AI Tutor</h3>
+            <span style="font-size: 10px; color: var(--accent-cyan);" id="ai-provider-label">Offline Fallback Active</span>
+          </div>
+        </div>
+        <button class="icon-button" id="btn-close-ai" style="width:28px; height:28px;">✕</button>
+      </div>
+
+      <div class="ai-drawer-body" id="ai-chat-body">
+        <div class="ai-message assistant">
+          Hello! I'm your NeuralVerse AI Tutor. I can explain complex VR math, give hints on Bellman equations, summarize lessons, or create practice problems for you.
+        </div>
+      </div>
+
+      <div style="padding: 10px 20px 0 20px;">
+        <div class="ai-quick-actions">
+          <button class="ai-btn-chip" onclick="appController.askAI('explain')">💡 Explain Lesson</button>
+          <button class="ai-btn-chip" onclick="appController.askAI('hint')">🔍 Give Hint</button>
+          <button class="ai-btn-chip" onclick="appController.askAI('practice')">📝 Practice Problem</button>
+          <button class="ai-btn-chip" onclick="appController.askAI('summarize')">📋 3-Bullet Summary</button>
+        </div>
+      </div>
+
+      <div class="ai-drawer-footer">
+        <input type="text" id="ai-input-text" placeholder="Ask a question about this lesson..." style="flex:1; background:var(--bg-primary); border:1px solid var(--border-color); color:#fff; padding:8px 12px; border-radius:var(--radius-sm); font-size:12px; outline:none; user-select:text;">
+        <button class="btn btn-primary" id="btn-send-ai" style="padding:6px 12px;">Send</button>
+      </div>
+    </aside>
   </div>
 
   <!-- Scripts -->
@@ -339,11 +486,14 @@
   <script src="src/modules/progressManager.js"></script>
   <script src="src/modules/notesManager.js"></script>
   <script src="src/modules/quizEngine.js"></script>
+  <script src="src/modules/aiAssistant.js"></script>
+  <script src="src/modules/csharpPlayground.js"></script>
   <script src="src/simulations/cubeDemo.js"></script>
   <script src="src/simulations/movementDemo.js"></script>
   <script src="src/simulations/qLearning.js"></script>
   <script src="src/simulations/whackAMole.js"></script>
   <script src="src/simulations/vrDemo.js"></script>
+  <script src="src/simulations/vrSpaceDemo.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -3,3 +3,6 @@ node_modules/
 neuralverse-data.json
 neuralverse-settings.json
 *.log
+dist/
+*.dmg
+*.dmg.xz

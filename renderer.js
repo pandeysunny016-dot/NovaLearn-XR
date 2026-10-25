@@ -7,17 +7,22 @@ class AppController {
     this.progressManager = new ProgressManager(this.bridge);
     this.notesManager = new NotesManager(this.bridge, this.progressManager);
     this.quizEngine = new QuizEngine(questionBank, this.progressManager);
+    this.aiAssistant = new AIAssistant(this.bridge);
 
     this.currentView = 'dashboard';
     this.currentModuleId = 'mod1';
     this.currentLessonId = 'mod1-les1';
     this.activeSim = null;
+    this.csharpPlayground = null;
 
     this.init();
   }
 
   async init() {
     await this.progressManager.init();
+    await this.aiAssistant.init();
+    await this.applyStoredPreferences();
+
     this.setupNavigation();
     this.setupSidebar();
     this.setupTopBar();
@@ -25,15 +30,62 @@ class AppController {
     this.setupLessonView();
     this.setupQuizView();
     this.setupNotesView();
+    this.setupAIAssistant();
+    this.setupKeyboardShortcuts();
+    this.setupStudyTimer();
+
     this.updateDashboard();
 
     // Listen for progress updates
     this.progressManager.subscribe(() => {
       this.updateDashboard();
       this.renderNotesList();
+      this.renderRevisionView();
+      this.renderAchievementsView();
     });
 
-    console.log('NeuralVerse Studio initialized.');
+    console.log('NeuralVerse Studio upgraded & initialized.');
+  }
+
+  async applyStoredPreferences() {
+    if (this.bridge && this.bridge.readSettings) {
+      try {
+        const res = await this.bridge.readSettings();
+        if (res && res.success && res.data) {
+          const s = res.data;
+          if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+          if (s.accentColor) document.documentElement.setAttribute('data-accent', s.accentColor);
+          if (s.aiConfig && this.aiAssistant) this.aiAssistant.settings = { ...this.aiAssistant.settings, ...s.aiConfig };
+        }
+      } catch (e) {
+        console.warn('Failed reading preferences in renderer:', e);
+      }
+    }
+  }
+
+  setupStudyTimer() {
+    // Log 1 minute of active study time every 60 seconds
+    setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        this.progressManager.addStudyTime(1);
+      }
+    }, 60000);
+  }
+
+  setupKeyboardShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + K: Focus global search
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('global-search');
+        if (searchInput) searchInput.focus();
+      }
+      // Alt + A: Toggle AI Tutor Drawer
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        this.toggleAIDrawer();
+      }
+    });
   }
 
   // ─── Navigation ─────────────────────────────────────────────────────────
@@ -73,6 +125,10 @@ class AppController {
 
     if (viewName === 'dashboard') {
       this.updateDashboard();
+    } else if (viewName === 'revision') {
+      this.renderRevisionView();
+    } else if (viewName === 'achievements') {
+      this.renderAchievementsView();
     }
   }
 
@@ -92,12 +148,32 @@ class AppController {
   setupTopBar() {
     const btnSettings = document.getElementById('btn-settings');
     const btnAbout = document.getElementById('btn-about');
+    const btnTheme = document.getElementById('btn-toggle-theme');
+    const btnAI = document.getElementById('btn-toggle-ai');
 
     if (btnSettings && this.bridge) {
       btnSettings.addEventListener('click', () => this.bridge.openSettings());
     }
     if (btnAbout && this.bridge) {
       btnAbout.addEventListener('click', () => this.bridge.openAbout());
+    }
+
+    if (btnTheme) {
+      btnTheme.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        if (this.bridge && this.bridge.readSettings && this.bridge.saveSettings) {
+          this.bridge.readSettings().then(res => {
+            const currentSettings = (res && res.data) || {};
+            this.bridge.saveSettings({ ...currentSettings, theme: next });
+          });
+        }
+      });
+    }
+
+    if (btnAI) {
+      btnAI.addEventListener('click', () => this.toggleAIDrawer());
     }
 
     // Global Search
@@ -110,6 +186,11 @@ class AppController {
         }
       });
     }
+  }
+
+  toggleAIDrawer() {
+    const drawer = document.getElementById('ai-drawer');
+    if (drawer) drawer.classList.toggle('open');
   }
 
   handleGlobalSearch(query) {
@@ -148,12 +229,41 @@ class AppController {
     const elProgress = document.getElementById('dash-progress-pct');
     const elQuizAvg = document.getElementById('dash-quiz-avg');
     const elStreak = document.getElementById('streak-count');
+    const elXpBadge = document.getElementById('header-xp-badge');
+    const elTotalTime = document.getElementById('dash-total-time');
+    const elGoalStatus = document.getElementById('dash-goal-status');
+    const elGoalBar = document.getElementById('dash-goal-bar');
+    const elLevelDisplay = document.getElementById('dash-level-display');
 
     if (elTotalMod) elTotalMod.textContent = courseData.modules.length;
     if (elCompleted) elCompleted.textContent = `${stats.completedCount} / ${totalLessons}`;
     if (elProgress) elProgress.textContent = `${stats.progressPct}%`;
     if (elQuizAvg) elQuizAvg.textContent = `${stats.avgQuizScore}%`;
     if (elStreak) elStreak.textContent = `${stats.streakDays} Day Streak`;
+    if (elXpBadge) elXpBadge.textContent = `${stats.xp} XP (Lvl ${stats.level})`;
+    if (elTotalTime) elTotalTime.textContent = `Total: ${stats.studyTimeMinutes} mins`;
+    if (elGoalStatus) elGoalStatus.textContent = `${stats.todayStudyMinutes} / ${stats.dailyGoalMinutes} mins`;
+    if (elGoalBar) {
+      const goalPct = Math.min(100, Math.round((stats.todayStudyMinutes / stats.dailyGoalMinutes) * 100));
+      elGoalBar.style.width = `${goalPct}%`;
+    }
+    if (elLevelDisplay) elLevelDisplay.textContent = `Level ${stats.level} Explorer (${stats.xp} XP)`;
+
+    // Render Weekly Activity Bar Chart
+    const chartContainer = document.getElementById('dash-weekly-chart');
+    if (chartContainer) {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const maxVal = Math.max(30, ...stats.weeklyActivity);
+      chartContainer.innerHTML = stats.weeklyActivity.map((mins, idx) => {
+        const heightPct = Math.max(8, Math.round((mins / maxVal) * 100));
+        return `
+          <div class="chart-bar-col">
+            <div class="chart-bar" style="height: ${heightPct}%;" title="${days[idx]}: ${mins} mins"></div>
+            <span class="chart-label">${days[idx]}</span>
+          </div>
+        `;
+      }).join('');
+    }
 
     // Activity List
     const actListEl = document.getElementById('dash-activities-list');
@@ -443,9 +553,10 @@ class AppController {
           <canvas id="sim-canvas" width="600" height="350"></canvas>
           <div class="sim-controls">
             <label style="font-size:12px;">Scale: <input type="range" id="c-scale" min="0.5" max="2" step="0.1" value="1"></label>
-            <label style="font-size:12px;">Light Intensity: <input type="range" id="c-light" min="0.1" max="1.5" step="0.1" value="0.8"></label>
-            <label style="font-size:12px;"><input type="checkbox" id="c-wireframe"> Wireframe Mode</label>
+            <label style="font-size:12px;">Light: <input type="range" id="c-light" min="0.1" max="1.5" step="0.1" value="0.8"></label>
+            <label style="font-size:12px;"><input type="checkbox" id="c-wireframe"> Wireframe</label>
             <label style="font-size:12px;"><input type="checkbox" id="c-autorotate" checked> Auto Rotate</label>
+            <button class="btn btn-secondary" id="btn-reset-cube" style="padding:4px 10px; font-size:11px;">↺ Reset Cube</button>
           </div>
         </div>
       `;
@@ -455,6 +566,18 @@ class AppController {
       document.getElementById('c-light').oninput = (e) => this.activeSim.setTransform({ light: parseFloat(e.target.value) });
       document.getElementById('c-wireframe').onchange = (e) => this.activeSim.setTransform({ wireframe: e.target.checked });
       document.getElementById('c-autorotate').onchange = (e) => this.activeSim.setTransform({ autoRotate: e.target.checked });
+      document.getElementById('btn-reset-cube').onclick = () => {
+        this.activeSim.reset();
+        document.getElementById('c-scale').value = 1;
+        document.getElementById('c-light').value = 0.8;
+        document.getElementById('c-wireframe').checked = false;
+        document.getElementById('c-autorotate').checked = true;
+      };
+
+    } else if (type === 'csharp') {
+      container.innerHTML = `<div id="csharp-playground-wrapper"></div>`;
+      this.csharpPlayground = new CSharpPlayground('csharp-playground-wrapper');
+      this.csharpPlayground.render();
 
     } else if (type === 'movement') {
       container.innerHTML = `
@@ -479,7 +602,17 @@ class AppController {
           Real Bellman equation updates. Watch the agent learn optimal paths around red obstacles towards the green goal. Triangles display directional Q-values.
         </p>
         <div class="sim-container">
-          <canvas id="sim-canvas" width="400" height="400"></canvas>
+          <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; justify-content:center;">
+            <canvas id="sim-canvas" width="380" height="380"></canvas>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <span style="font-size:12px; color:var(--text-muted);">Reward Convergence Curve:</span>
+              <canvas id="ql-chart-canvas" width="220" height="110" style="background:#070b14; border:1px solid var(--border-color); border-radius:4px;"></canvas>
+              <div style="display:flex; flex-direction:column; gap:4px; margin-top:6px; font-size:11px;">
+                <label>Alpha (α): <input type="range" id="ql-alpha" min="0.05" max="0.9" step="0.05" value="0.2" style="width:100px;"></label>
+                <label>Gamma (γ): <input type="range" id="ql-gamma" min="0.1" max="0.99" step="0.05" value="0.9" style="width:100px;"></label>
+              </div>
+            </div>
+          </div>
           <div id="ql-diag" style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;"></div>
           <div class="sim-controls">
             <button class="btn btn-emerald" onclick="appController.activeSim.start()">Start Training ▶</button>
@@ -490,25 +623,63 @@ class AppController {
         </div>
       `;
       this.activeSim = new QLearningSimulator('sim-canvas');
+      const alphaEl = document.getElementById('ql-alpha');
+      const gammaEl = document.getElementById('ql-gamma');
+      if (alphaEl) alphaEl.oninput = (e) => this.activeSim.setParameters({ alpha: parseFloat(e.target.value) });
+      if (gammaEl) gammaEl.oninput = (e) => this.activeSim.setParameters({ gamma: parseFloat(e.target.value) });
+
+    } else if (type === 'vr-space') {
+      container.innerHTML = `
+        <h3 style="font-size: 18px; color: var(--accent-cyan); margin-bottom: 6px;">360° First-Person VR Laboratory Experience</h3>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">
+          Simulated first-person mobile VR headset environment. Use WASD keys to walk around and drag mouse to rotate view. Inspect interactive educational pedestals.
+        </p>
+        <div class="sim-container">
+          <div id="vr-space-hud" style="font-size:12px; color:var(--accent-cyan); margin-bottom:6px; min-height:18px;">WASD to walk around lab | Drag mouse to look in 360° | Focus reticle on objects to inspect</div>
+          <canvas id="sim-canvas" width="650" height="370" style="cursor: grab; border: 1px solid var(--border-color); border-radius: var(--radius-sm);"></canvas>
+        </div>
+      `;
+      this.activeSim = new VRSpaceDemo('sim-canvas');
 
     } else if (type === 'wam') {
       container.innerHTML = `
         <h3 style="font-size: 18px; color: var(--accent-amber); margin-bottom: 6px;">Mobile VR Whack-a-Mole Minigame</h3>
         <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">
-          Test your reaction speed. Click/whack targets before they disappear. Beware of red bomb traps!
+          Test your reaction speed. Select difficulty, click/whack targets before they disappear, and avoid red bomb traps!
         </p>
         <div class="sim-container">
-          <div style="display:flex; justify-content:space-between; width:100%; max-width:500px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; width:100%; max-width:500px; margin-bottom:8px; align-items:center;">
             <span style="font-size:14px; font-weight:600;">Score: <span id="wam-score" style="color:var(--accent-amber);">0</span></span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span style="font-size:12px; color:var(--text-muted);">Difficulty:</span>
+              <select id="wam-difficulty" style="background:var(--bg-secondary); border:1px solid var(--border-color); color:#fff; font-size:11px; padding:2px 6px; border-radius:3px;">
+                <option value="easy">Easy (1.8s)</option>
+                <option value="normal" selected>Normal (1.3s)</option>
+                <option value="hard">Hard (0.9s)</option>
+              </select>
+            </div>
             <span style="font-size:14px; font-weight:600;">Time: <span id="wam-timer" style="color:var(--accent-cyan);">30s</span></span>
           </div>
-          <canvas id="sim-canvas" width="500" height="450"></canvas>
+          <canvas id="sim-canvas" width="500" height="420"></canvas>
           <div class="sim-controls">
-            <button class="btn btn-primary" onclick="appController.activeSim.start()">Start Game 🎮</button>
+            <button class="btn btn-primary" id="btn-wam-start">Start Game 🎮</button>
+            <button class="btn btn-secondary" id="btn-wam-restart">Restart ↺</button>
           </div>
         </div>
       `;
       this.activeSim = new WhackAMoleGame('sim-canvas');
+      const startBtn = document.getElementById('btn-wam-start');
+      const restartBtn = document.getElementById('btn-wam-restart');
+      const diffSel = document.getElementById('wam-difficulty');
+
+      if (startBtn) startBtn.onclick = () => {
+        const diff = diffSel ? diffSel.value : 'normal';
+        this.activeSim.start(diff);
+      };
+      if (restartBtn) restartBtn.onclick = () => {
+        const diff = diffSel ? diffSel.value : 'normal';
+        this.activeSim.start(diff);
+      };
 
     } else if (type === 'vr') {
       container.innerHTML = `
@@ -717,6 +888,172 @@ class AppController {
     document.getElementById('note-edit-tags').value = (note.tags || []).join(', ');
 
     this.renderNotesList();
+  }
+
+  // ─── AI Assistant Integration ───────────────────────────────────────────
+
+  setupAIAssistant() {
+    const btnClose = document.getElementById('btn-close-ai');
+    const btnSend = document.getElementById('btn-send-ai');
+    const input = document.getElementById('ai-input-text');
+
+    if (btnClose) {
+      btnClose.addEventListener('click', () => this.toggleAIDrawer());
+    }
+    if (btnSend && input) {
+      btnSend.addEventListener('click', () => {
+        const text = input.value.trim();
+        if (text) {
+          this.askAI('chat', text);
+          input.value = '';
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const text = input.value.trim();
+          if (text) {
+            this.askAI('chat', text);
+            input.value = '';
+          }
+        }
+      });
+    }
+  }
+
+  async askAI(action, customQuery = '') {
+    const chatBody = document.getElementById('ai-chat-body');
+    const curLesson = this.getActiveLesson();
+    if (!chatBody) return;
+
+    // Show user message if manual chat
+    if (action === 'chat' && customQuery) {
+      const userBubble = document.createElement('div');
+      userBubble.className = 'ai-message user';
+      userBubble.textContent = customQuery;
+      chatBody.appendChild(userBubble);
+    }
+
+    // Loading indicator
+    const loadBubble = document.createElement('div');
+    loadBubble.className = 'ai-message assistant';
+    loadBubble.innerHTML = `<em>Thinking... Analyzing ${curLesson ? curLesson.title : 'course context'}...</em>`;
+    chatBody.appendChild(loadBubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    const res = await this.aiAssistant.ask({
+      action,
+      lesson: curLesson,
+      query: customQuery
+    });
+
+    if (res && res.reply) {
+      // Basic markdown styling
+      let formatted = res.reply
+        .replace(/### (.*)/g, '<h4 style="color:var(--accent-cyan); margin: 6px 0;">$1</h4>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.3); padding:2px 4px; border-radius:3px; color:var(--accent-cyan);">$1</code>')
+        .replace(/\n\n/g, '<br><br>');
+
+      loadBubble.innerHTML = formatted;
+    } else {
+      loadBubble.textContent = 'Could not generate a response at this time. Please try again.';
+    }
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  // ─── Revision & Mistake Review View ────────────────────────────────────
+
+  renderRevisionView() {
+    const mistakesListEl = document.getElementById('revision-mistakes-list');
+    const pinnedNotesListEl = document.getElementById('revision-notes-list');
+    const btnClear = document.getElementById('btn-clear-mistakes');
+
+    if (btnClear) {
+      btnClear.onclick = () => {
+        this.progressManager.data.incorrectQuizAnswers = [];
+        this.progressManager.save();
+        this.renderRevisionView();
+      };
+    }
+
+    if (mistakesListEl) {
+      const mistakes = this.progressManager.data.incorrectQuizAnswers || [];
+      if (mistakes.length === 0) {
+        mistakesListEl.innerHTML = `<div style="color:var(--text-sub); font-size:12px; padding:10px;">No missed questions on record! High-five on your accuracy. 🎉</div>`;
+      } else {
+        mistakesListEl.innerHTML = mistakes.map((m, idx) => `
+          <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-left:3px solid var(--accent-rose); border-radius:4px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-sub); margin-bottom:4px;">
+              <span>Question ${idx + 1} (${m.moduleId || 'Course'})</span>
+            </div>
+            <h4 style="font-size:13px; color:#fff; margin-bottom:8px;">${m.question}</h4>
+            <div style="font-size:12px; color:var(--accent-rose); margin-bottom:4px;">
+              Your choice: ${m.userSelection !== null && m.options[m.userSelection] ? m.options[m.userSelection] : 'Skipped'}
+            </div>
+            <div style="font-size:12px; color:var(--accent-emerald); margin-bottom:6px;">
+              Correct answer: ${m.options[m.correct]}
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); background:rgba(0,0,0,0.2); padding:6px 8px; border-radius:3px;">
+              <strong>Why:</strong> ${m.explanation}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    if (pinnedNotesListEl) {
+      const notes = this.notesManager.getNotes();
+      if (notes.length === 0) {
+        pinnedNotesListEl.innerHTML = `<div style="color:var(--text-sub); font-size:12px; padding:10px;">No notes created yet. Go to Study Notes to write down key concepts!</div>`;
+      } else {
+        pinnedNotesListEl.innerHTML = notes.map(n => `
+          <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-left:3px solid var(--accent-cyan); border-radius:4px; padding:12px;">
+            <h4 style="font-size:13px; color:#fff; margin-bottom:4px;">${n.title}</h4>
+            <p style="font-size:12px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap;">${n.content.substring(0, 180)}${n.content.length > 180 ? '...' : ''}</p>
+            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-sub); margin-top:8px;">
+              <span>${(n.tags || []).join(', ') || 'Note'}</span>
+              <span>${new Date(n.updatedAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  // ─── Achievements & Badges View ────────────────────────────────────────
+
+  renderAchievementsView() {
+    const xpTotalEl = document.getElementById('achieve-xp-total');
+    const levelTotalEl = document.getElementById('achieve-level-total');
+    const gridEl = document.getElementById('achieve-badge-grid');
+
+    const stats = this.progressManager.getStats();
+    if (xpTotalEl) xpTotalEl.textContent = `${stats.xp} XP`;
+    if (levelTotalEl) levelTotalEl.textContent = `Level ${stats.level}`;
+
+    if (gridEl) {
+      const allBadges = [
+        { id: 'first_step', icon: '🌱', name: 'First Step', desc: 'Completed your very first lesson.' },
+        { id: 'scholar', icon: '🎓', name: 'Neural Scholar', desc: 'Completed 10 or more course lessons.' },
+        { id: 'quiz_master', icon: '🎯', name: 'Assessment Pro', desc: 'Submitted 3 module assessments.' },
+        { id: 'streak_flame', icon: '🔥', name: 'Unstoppable Streak', desc: 'Maintained a 3-day study streak.' },
+        { id: 'scribe', icon: '📝', name: 'Master Scribe', desc: 'Saved 5 comprehensive study notes.' }
+      ];
+
+      const unlockedSet = new Set(stats.badges);
+      gridEl.innerHTML = allBadges.map(b => {
+        const isUnlocked = unlockedSet.has(b.id);
+        return `
+          <div class="badge-card ${isUnlocked ? 'unlocked' : 'locked'}">
+            <span style="font-size:28px;">${b.icon}</span>
+            <div>
+              <h4 style="font-size:13px; color:#fff;">${b.name} ${isUnlocked ? '✓' : '🔒'}</h4>
+              <p style="font-size:11px; color:var(--text-sub); margin-top:3px;">${b.desc}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   }
 }
 

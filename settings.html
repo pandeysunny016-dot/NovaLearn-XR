@@ -12,6 +12,7 @@
       flex-direction: column;
       gap: 16px;
       overflow-y: auto;
+      max-height: 100vh;
     }
     .setting-group {
       background: var(--bg-card);
@@ -29,48 +30,126 @@
     .setting-row:last-child {
       border-bottom: none;
     }
+    .input-control {
+      background: var(--bg-primary);
+      color: #fff;
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
   <div>
     <h2 style="font-size: 20px; color: #fff;">Application Preferences</h2>
-    <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Customize NeuralVerse Studio workspace configuration</p>
+    <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Customize NeuralVerse Studio workspace, AI tutor, and display options</p>
   </div>
 
+  <!-- Display & Themes -->
   <div class="setting-group">
-    <h3 style="font-size: 14px; color: var(--accent-cyan); margin-bottom: 10px;">Display & Interface</h3>
+    <h3 style="font-size: 14px; color: var(--accent-cyan); margin-bottom: 10px;">🎨 Display & Theme</h3>
     <div class="setting-row">
       <div>
         <strong>Theme Mode</strong>
         <p style="font-size: 11px; color: var(--text-sub);">Studio visual color scheme</p>
       </div>
-      <select id="set-theme" style="background: var(--bg-primary); color: #fff; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px;">
+      <select id="set-theme" class="input-control">
         <option value="dark">Dark Neon (Default)</option>
+        <option value="light">Solar Light</option>
         <option value="charcoal">Charcoal Slate</option>
       </select>
     </div>
 
     <div class="setting-row">
       <div>
-        <strong>Native Notifications</strong>
-        <p style="font-size: 11px; color: var(--text-sub);">Receive desktop alerts on quiz/lesson completion</p>
+        <strong>Accent Color</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Primary glowing accent tint</p>
+      </div>
+      <select id="set-accent" class="input-control">
+        <option value="cyan">Cyan Neon (Default)</option>
+        <option value="emerald">Emerald Matrix</option>
+        <option value="violet">Deep Violet</option>
+        <option value="amber">Warm Amber</option>
+        <option value="rose">Cyber Rose</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Study & Audio -->
+  <div class="setting-group">
+    <h3 style="font-size: 14px; color: var(--accent-emerald); margin-bottom: 10px;">🎯 Goals & Audio</h3>
+    <div class="setting-row">
+      <div>
+        <strong>Daily Study Goal (Minutes)</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Target study time each day to maintain streak</p>
+      </div>
+      <input type="number" id="set-daily-goal" class="input-control" min="5" max="180" value="20" style="width: 80px;">
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <strong>Sound Effects</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Audio synthesis in Whack-a-Mole and lab interactions</p>
+      </div>
+      <input type="checkbox" id="set-sound" checked>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <strong>Desktop Notifications</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Receive desktop alerts on goal milestones & quiz completion</p>
       </div>
       <input type="checkbox" id="set-notify" checked>
     </div>
   </div>
 
+  <!-- AI Learning Assistant -->
   <div class="setting-group">
-    <h3 style="font-size: 14px; color: var(--accent-rose); margin-bottom: 10px;">Data & Storage Management</h3>
+    <h3 style="font-size: 14px; color: var(--accent-violet); margin-bottom: 10px;">🤖 AI Tutor Configuration</h3>
+    <div class="setting-row">
+      <div>
+        <strong>AI Provider</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Choose offline knowledge engine or your cloud API</p>
+      </div>
+      <select id="set-ai-provider" class="input-control">
+        <option value="offline">Built-in Offline Knowledge Engine (Free & Instant)</option>
+        <option value="openai">OpenAI (GPT-4o / GPT-3.5)</option>
+        <option value="anthropic">Anthropic Claude</option>
+        <option value="custom">Custom Compatible Endpoint (Ollama / LocalAI)</option>
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <strong>API Key (Kept Secure in Main Process)</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Never stored in frontend code or shared externally</p>
+      </div>
+      <input type="password" id="set-ai-key" class="input-control" placeholder="sk-..." style="width: 200px;">
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <strong>Custom Endpoint URL (Optional)</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">For Ollama or local LLM server (e.g., http://localhost:11434)</p>
+      </div>
+      <input type="text" id="set-ai-endpoint" class="input-control" placeholder="http://localhost:11434/v1" style="width: 200px;">
+    </div>
+  </div>
+
+  <!-- Data Management -->
+  <div class="setting-group">
+    <h3 style="font-size: 14px; color: var(--accent-rose); margin-bottom: 10px;">⚠️ Data & Storage Management</h3>
     <div class="setting-row">
       <div>
         <strong>Reset All Learning Data</strong>
-        <p style="font-size: 11px; color: var(--text-sub);">Clear completed lessons, streaks, and quiz attempts</p>
+        <p style="font-size: 11px; color: var(--text-sub);">Clear completed lessons, streaks, XP, and quiz attempts</p>
       </div>
       <button class="btn btn-danger" id="btn-reset-data">Reset Studio Data</button>
     </div>
   </div>
 
-  <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: auto;">
+  <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; padding-bottom: 12px;">
     <button class="btn btn-secondary" onclick="window.close()">Close</button>
     <button class="btn btn-emerald" id="btn-save-settings">Save Changes</button>
   </div>

@@ -1,0 +1,17 @@
+{
+  "name": "neuralverse",
+  "version": "1.0.0",
+  "description": "NeuralVerse — Interactive VR & AI Learning Studio. A desktop educational laboratory for Mobile Virtual Reality and Artificial Intelligence.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node tests/test-runner.js"
+  },
+  "keywords": ["electron", "education", "vr", "ai", "reinforcement-learning", "unity", "nptel"],
+  "author": "NeuralVerse Team",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}

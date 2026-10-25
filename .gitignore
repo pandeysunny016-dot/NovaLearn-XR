@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+neuralverse-data.json
+neuralverse-settings.json
+*.log

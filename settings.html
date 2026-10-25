@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — NeuralVerse</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .setting-group {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h2 style="font-size: 20px; color: #fff;">Application Preferences</h2>
+    <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Customize NeuralVerse Studio workspace configuration</p>
+  </div>
+
+  <div class="setting-group">
+    <h3 style="font-size: 14px; color: var(--accent-cyan); margin-bottom: 10px;">Display & Interface</h3>
+    <div class="setting-row">
+      <div>
+        <strong>Theme Mode</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Studio visual color scheme</p>
+      </div>
+      <select id="set-theme" style="background: var(--bg-primary); color: #fff; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px;">
+        <option value="dark">Dark Neon (Default)</option>
+        <option value="charcoal">Charcoal Slate</option>
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <strong>Native Notifications</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Receive desktop alerts on quiz/lesson completion</p>
+      </div>
+      <input type="checkbox" id="set-notify" checked>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <h3 style="font-size: 14px; color: var(--accent-rose); margin-bottom: 10px;">Data & Storage Management</h3>
+    <div class="setting-row">
+      <div>
+        <strong>Reset All Learning Data</strong>
+        <p style="font-size: 11px; color: var(--text-sub);">Clear completed lessons, streaks, and quiz attempts</p>
+      </div>
+      <button class="btn btn-danger" id="btn-reset-data">Reset Studio Data</button>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: auto;">
+    <button class="btn btn-secondary" onclick="window.close()">Close</button>
+    <button class="btn btn-emerald" id="btn-save-settings">Save Changes</button>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

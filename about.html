@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About NeuralVerse</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--bg-secondary);
+      user-select: text;
+    }
+  </style>
+</head>
+<body>
+  <div style="text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+    <div style="font-size: 36px; margin-bottom: 6px;">🌐</div>
+    <h2 style="font-size: 20px; color: #fff;">NeuralVerse</h2>
+    <p style="font-size: 12px; color: var(--accent-cyan);">Interactive VR & AI Learning Studio</p>
+    <p style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">Version 1.0.0 (Production)</p>
+  </div>
+
+  <div style="font-size: 12px; line-height: 1.6; color: #cbd5e1;">
+    <p style="margin-bottom: 10px;">
+      <strong>Project Objective:</strong> A comprehensive desktop laboratory designed for the NPTEL/SWAYAM course <em>Mobile Virtual Reality and Artificial Intelligence</em>. Combines academic theory with real-time browser simulations, C# Unity script engineering, and Tabular Reinforcement Learning.
+    </p>
+
+    <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
+      <h4 style="color: #fff; margin-bottom: 6px;">Technology Stack</h4>
+      <ul style="list-style: square; margin-left: 20px; color: var(--text-muted);">
+        <li>Electron 28 (Desktop Framework, Multi-Window, IPC)</li>
+        <li>Node.js (Main Process, Native File Dialogs, Safe Storage)</li>
+        <li>ContextBridge & Preload (Zero Node integration in renderer)</li>
+        <li>HTML5 Canvas (Hardware-accelerated 3D & 2D Simulations)</li>
+      </ul>
+    </div>
+
+    <p style="font-size: 11px; color: var(--text-sub);">
+      <em>Disclaimer:</em> NeuralVerse is an independent educational companion developed for college coursework and viva examination. It is not affiliated with or endorsed by NPTEL/SWAYAM.
+    </p>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; margin-top: auto;">
+    <button class="btn btn-secondary" onclick="window.close()">Close</button>
+  </div>
+
+  <script src="about.js"></script>
+</body>
+</html>

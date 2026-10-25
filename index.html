@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuralVerse — Interactive VR & AI Learning Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo">🌐</div>
+        <div class="brand-text">
+          <h1>NeuralVerse</h1>
+          <p>VR & AI Learning Studio</p>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-view="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Dashboard</span>
+        </li>
+        <li class="nav-item" data-view="course">
+          <span class="nav-icon">📚</span>
+          <span class="nav-text">Course Library</span>
+        </li>
+        <li class="nav-item" data-view="lessons">
+          <span class="nav-icon">📖</span>
+          <span class="nav-text">Lessons</span>
+        </li>
+        <li class="nav-item" data-view="simulations">
+          <span class="nav-icon">🕹️</span>
+          <span class="nav-text">Interactive Labs</span>
+        </li>
+        <li class="nav-item" data-view="quizzes">
+          <span class="nav-icon">📝</span>
+          <span class="nav-text">Assessments</span>
+        </li>
+        <li class="nav-item" data-view="notes">
+          <span class="nav-icon">🗒️</span>
+          <span class="nav-text">Study Notes</span>
+        </li>
+        <li class="nav-item" data-view="unity-lab">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-text">Unity & Practical Lab</span>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="collapse-btn" id="toggle-sidebar" title="Toggle Sidebar">
+          <span>◀</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-wrapper">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="global-search" placeholder="Search lessons, terms, modules...">
+        </div>
+
+        <div class="topbar-actions">
+          <div class="badge-streak" id="streak-badge">
+            <span>🔥</span>
+            <span id="streak-count">1 Day Streak</span>
+          </div>
+
+          <button class="icon-button" id="btn-settings" title="Settings">⚙️</button>
+          <button class="icon-button" id="btn-about" title="About NeuralVerse">ℹ️</button>
+        </div>
+      </header>
+
+      <!-- Viewport Content Container -->
+      <div class="content-viewport">
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view-section active">
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 24px; font-weight: 700; color: #fff;">Welcome back, Student Explorer</h2>
+            <p style="color: var(--text-muted); margin-top: 4px;">NPTEL Mobile Virtual Reality & AI Learning Companion</p>
+          </div>
+
+          <!-- Top Stats Cards -->
+          <div class="grid-4">
+            <div class="card stat-card">
+              <div class="stat-icon" style="color: var(--accent-cyan);">📚</div>
+              <div class="stat-info">
+                <h4>Total Modules</h4>
+                <div class="stat-value" id="dash-total-modules">4</div>
+              </div>
+            </div>
+
+            <div class="card stat-card">
+              <div class="stat-icon" style="color: var(--accent-emerald);">✅</div>
+              <div class="stat-info">
+                <h4>Completed Lessons</h4>
+                <div class="stat-value" id="dash-completed-lessons">0 / 25</div>
+              </div>
+            </div>
+
+            <div class="card stat-card">
+              <div class="stat-icon" style="color: var(--accent-violet);">📈</div>
+              <div class="stat-info">
+                <h4>Course Progress</h4>
+                <div class="stat-value" id="dash-progress-pct">0%</div>
+              </div>
+            </div>
+
+            <div class="card stat-card">
+              <div class="stat-icon" style="color: var(--accent-amber);">🎯</div>
+              <div class="stat-info">
+                <h4>Quiz Average</h4>
+                <div class="stat-value" id="dash-quiz-avg">0%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Continue Learning & Recent Activity -->
+          <div class="grid-2">
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 12px; color: #fff;">🎯 Recommended Next Topic</h3>
+              <div id="dash-recommended" style="padding: 14px; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border-left: 4px solid var(--accent-cyan);">
+                <h4 style="font-size: 15px; color: var(--accent-cyan);" id="rec-title">History & Fundamentals of Virtual Reality</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 14px 0;" id="rec-desc">Start your exploration into immersive computing, HMDs, and stereoscopy.</p>
+                <button class="btn btn-primary" id="btn-continue-learning">Continue Learning →</button>
+              </div>
+
+              <h3 style="font-size: 16px; margin: 24px 0 12px 0; color: #fff;">⚡ Quick Laboratory Launch</h3>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'cube' })">🧊 3D Cube Lab</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'movement' })">🎮 C# Physics Lab</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'ql' })">🧠 Q-Learning Grid</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'wam' })">🎯 Whack-a-Mole VR</button>
+                <button class="btn btn-secondary" onclick="appController.switchView('simulations', { sim: 'vr' })">🥽 3DOF Gaze Lab</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px; color: #fff;">🕒 Recent Activity Log</h3>
+              <div id="dash-activities-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto;">
+                <p style="color: var(--text-sub); font-size: 12px;">No recent activities yet. Start learning a module!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. COURSE LIBRARY VIEW -->
+        <section id="view-course" class="view-section">
+          <div style="margin-bottom: 16px;">
+            <h2 style="font-size: 22px; color: #fff;">Curriculum & Learning Modules</h2>
+            <p style="color: var(--text-muted); font-size: 13px;">Explore structured topics mapped to Mobile VR & AI syllabus.</p>
+          </div>
+          <div class="module-grid" id="course-module-cards">
+            <!-- Dynamic module cards injected by JS -->
+          </div>
+        </section>
+
+        <!-- 3. LESSON VIEWER -->
+        <section id="view-lessons" class="view-section">
+          <div class="lesson-layout">
+            <aside class="lesson-sidebar">
+              <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Course Lessons</h3>
+              <select id="lesson-module-select" style="width: 100%; margin-top: 10px; background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 6px; border-radius: 4px;">
+                <!-- Module options -->
+              </select>
+              <ul class="lesson-list" id="lesson-items-container">
+                <!-- Lesson items -->
+              </ul>
+            </aside>
+
+            <article class="lesson-body" id="lesson-body-area">
+              <div class="lesson-header">
+                <div class="lesson-title-row">
+                  <h2 id="lesson-view-title" style="font-size: 22px; color: #fff;">Select a Lesson</h2>
+                  <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" id="btn-toggle-bookmark">⭐ Bookmark</button>
+                    <button class="btn btn-emerald" id="btn-complete-lesson">Mark Complete ✓</button>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 10px;" id="lesson-badges">
+                  <!-- Badges -->
+                </div>
+              </div>
+
+              <div id="lesson-text-content" class="lesson-content">
+                <p style="color: var(--text-muted);">Please pick a lesson from the sidebar to view its objectives, concepts, C# code examples, and practical activities.</p>
+              </div>
+
+              <div style="margin-top: 30px; display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 18px;">
+                <button class="btn btn-secondary" id="btn-prev-lesson">← Previous Lesson</button>
+                <button class="btn btn-secondary" id="btn-take-notes">📝 Notes on this Topic</button>
+                <button class="btn btn-primary" id="btn-next-lesson">Next Lesson →</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- 4. INTERACTIVE SIMULATIONS LAB -->
+        <section id="view-simulations" class="view-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h2 style="font-size: 22px; color: #fff;">Interactive Concept Laboratories</h2>
+              <p style="color: var(--text-muted); font-size: 13px;">Real-time interactive simulations of 3D Transforms, C# movement, Q-Learning & Mobile VR.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('cube')">🧊 3D Transform</button>
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('movement')">🎮 Player & Camera</button>
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('ql')">🧠 Tabular Q-Learning</button>
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('wam')">🎯 Whack-a-Mole</button>
+              <button class="btn btn-secondary" onclick="appController.loadSimulation('vr')">🥽 3DOF Reticle</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Simulator Container -->
+          <div id="active-sim-panel" class="card">
+            <!-- Simulated contents dynamically rendered -->
+          </div>
+        </section>
+
+        <!-- 5. QUIZZES & ASSESSMENTS -->
+        <section id="view-quizzes" class="view-section">
+          <div class="quiz-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 18px;">
+              <div>
+                <h2 style="font-size: 20px; color: #fff;">Module Assessment Engine</h2>
+                <p style="color: var(--text-muted); font-size: 12px;">Test your knowledge with immediate feedback and detailed explanations.</p>
+              </div>
+              <select id="quiz-module-select" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: #fff; padding: 6px 10px; border-radius: 4px;">
+                <option value="mod1">Module 1: Virtual Reality & Unity 3D</option>
+                <option value="mod2">Module 2: C# Programming & Interaction</option>
+                <option value="mod3">Module 3: Deep Reinforcement Learning</option>
+                <option value="mod4">Module 4: Mobile Virtual Reality</option>
+              </select>
+            </div>
+
+            <div id="quiz-content-area">
+              <!-- Question or Results injected here -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. STUDY NOTES MANAGER -->
+        <section id="view-notes" class="view-section">
+          <div class="notes-layout">
+            <aside class="card" style="display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 15px; color: #fff;">Study Notes</h3>
+                <button class="btn btn-primary" id="btn-new-note" style="padding: 4px 10px; font-size: 12px;">+ New</button>
+              </div>
+              <input type="text" id="notes-search-box" placeholder="Filter notes..." style="background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; padding: 6px 8px; border-radius: 4px; margin-bottom: 12px; font-size: 12px;">
+              
+              <ul class="notes-list" id="notes-list-items" style="flex: 1;">
+                <!-- Notes list -->
+              </ul>
+
+              <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <button class="btn btn-secondary" id="btn-import-notes" style="flex: 1; font-size: 11px;">📂 Import</button>
+                <button class="btn btn-secondary" id="btn-export-notes" style="flex: 1; font-size: 11px;">💾 Export</button>
+              </div>
+            </aside>
+
+            <div class="card note-editor" style="display: flex; flex-direction: column; gap: 14px;">
+              <input type="text" id="note-edit-title" placeholder="Note Title...">
+              <div style="display: flex; gap: 10px;">
+                <select id="note-edit-module" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; padding: 6px; border-radius: 4px; flex: 1;">
+                  <option value="">General Note</option>
+                  <option value="mod1">Module 1: Virtual Reality & Unity 3D</option>
+                  <option value="mod2">Module 2: C# Programming & Interaction</option>
+                  <option value="mod3">Module 3: Deep Reinforcement Learning</option>
+                  <option value="mod4">Module 4: Mobile Virtual Reality</option>
+                </select>
+                <input type="text" id="note-edit-tags" placeholder="Tags (comma separated)..." style="flex: 1;">
+              </div>
+              <textarea id="note-edit-body" placeholder="Write your study notes, insights, code snippets, or viva questions here..." style="flex: 1;"></textarea>
+              <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-danger" id="btn-delete-note">Delete Note</button>
+                <button class="btn btn-emerald" id="btn-save-note">Save Note ✓</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. UNITY PRACTICAL LAB -->
+        <section id="view-unity-lab" class="view-section">
+          <div class="card" style="margin-bottom: 20px;">
+            <h2 style="font-size: 22px; color: #fff; margin-bottom: 8px;">Unity 3D Practical Engineering Lab</h2>
+            <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">
+              Standalone Unity 3D workspace setup instructions, complete production C# scripts, and ML-Agents PPO reinforcement learning configurations.
+            </p>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <h3 style="font-size: 16px; color: var(--accent-cyan); margin-bottom: 12px;">📁 Unity Project Resources</h3>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+                Working C# scripts for player movement, cameras, explosions, and ML-Agents are provided in the project repository under <code>unity-practicals/scripts/</code>.
+              </p>
+              <ul style="color: #cbd5e1; font-size: 13px; line-height: 1.8; margin-left: 20px;">
+                <li><strong>PlayerMovement.cs</strong> — Rigidbody physics and WASD input</li>
+                <li><strong>CameraFollow.cs</strong> — Smooth interpolated LateUpdate following</li>
+                <li><strong>ExplosionEffect.cs</strong> — Physics OverlapSphere force explosion</li>
+                <li><strong>RollerAgent.cs</strong> — Unity ML-Agents PPO Reinforcement Learning</li>
+                <li><strong>GazeInteraction.cs</strong> — Google Cardboard VR raycast reticle</li>
+              </ul>
+              <div style="margin-top: 18px;">
+                <button class="btn btn-primary" id="btn-open-unity-readme">View Unity Practical Documentation</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 16px; color: var(--accent-violet); margin-bottom: 12px;">🎓 Viva & Lab Evaluation Guidance</h3>
+              <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+                <p><strong>Desktop Simulations vs Unity Engine:</strong></p>
+                <p style="color: var(--text-muted); margin: 6px 0 12px 0;">
+                  NeuralVerse features real in-app HTML Canvas simulations for conceptual demonstration and rapid experimentation. Full 3D rendering and compilation require Unity Hub & Editor (LTS 2022/2023+).
+                </p>
+                <p><strong>Key Viva Concepts:</strong></p>
+                <ul style="color: var(--text-sub); margin-left: 20px; margin-top: 6px;">
+                  <li>MonoBehaviour Lifecycle (Awake, Start, Update, FixedUpdate)</li>
+                  <li>3DOF vs 6DOF tracking in Mobile VR</li>
+                  <li>Tabular Q-Learning vs Deep PPO RL</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="src/data/courseData.js"></script>
+  <script src="src/data/questionBank.js"></script>
+  <script src="src/modules/progressManager.js"></script>
+  <script src="src/modules/notesManager.js"></script>
+  <script src="src/modules/quizEngine.js"></script>
+  <script src="src/simulations/cubeDemo.js"></script>
+  <script src="src/simulations/movementDemo.js"></script>
+  <script src="src/simulations/qLearning.js"></script>
+  <script src="src/simulations/whackAMole.js"></script>
+  <script src="src/simulations/vrDemo.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

@@ -104,6 +104,35 @@ class NotesManager {
     return res;
   }
 
+
+  generateMarkdown(notes) {
+    let md = `# NeuralVerse Study Notes Revision\nExported: ${new Date().toLocaleString()}\n\n---\n\n`;
+    notes.forEach(n => {
+      md += `## ${n.title}\n`;
+      if (n.moduleId) md += `*Module: ${n.moduleId}*  \n`;
+      if (n.tags && n.tags.length) md += `*Tags: ${n.tags.join(', ')}*  \n`;
+      md += `\n${n.content}\n\n---\n\n`;
+    });
+    return md;
+  }
+
+  async exportNotesMarkdown() {
+    if (!this.bridge || !this.bridge.saveFileDialog) {
+      throw new Error('Native file save dialog not available');
+    }
+    const notes = this.getNotes();
+    const md = this.generateMarkdown(notes);
+
+    const res = await this.bridge.saveFileDialog(md, `neuralverse_notes_${Date.now()}.md`);
+    if (res.success) {
+      this.progressManager.logActivity('notes_export', `Exported notes as Markdown`);
+      if (this.bridge.showNotification) {
+        this.bridge.showNotification('Notes Exported (Markdown)', `Saved to ${res.filePath}`);
+      }
+    }
+    return res;
+  }
+
   async importNotesNative() {
     if (!this.bridge || !this.bridge.openFileDialog) {
       throw new Error('Native file open dialog not available');

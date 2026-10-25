@@ -10,7 +10,14 @@ class ProgressManager {
       activities: [],
       bookmarks: [],
       streak: { lastActiveDate: null, count: 0 },
-      simulatorPrefs: {}
+      simulatorPrefs: {},
+      xp: 0,
+      level: 1,
+      studyTimeMinutes: 0,
+      dailyGoalMinutes: 30,
+      todayStudyMinutes: 0,
+      badges: [],
+      weeklyActivity: [0, 0, 0, 0, 0, 0, 0] // Mon-Sun study minutes
     };
     this.listeners = [];
   }
@@ -102,8 +109,10 @@ class ProgressManager {
       this.data.completedLessons.push(lessonId);
       this.logActivity('lesson_complete', `Completed lesson: ${lessonTitle || lessonId}`);
       completed = true;
+      this.addXP(50, `Lesson Completed: ${lessonTitle || lessonId}`);
+      this.checkBadges();
       if (this.bridge && this.bridge.showNotification) {
-        this.bridge.showNotification('Lesson Completed! 🎉', `Great job finishing: ${lessonTitle || lessonId}`);
+        this.bridge.showNotification('Lesson Completed! 🎉', `+50 XP earned for finishing: ${lessonTitle || lessonId}`);
       }
     }
     await this.save();
@@ -130,19 +139,76 @@ class ProgressManager {
     return bookmarked;
   }
 
+  addXP(amount, reason = '') {
+    this.data.xp = (this.data.xp || 0) + amount;
+    const newLevel = Math.floor(this.data.xp / 200) + 1;
+    if (newLevel > (this.data.level || 1)) {
+      this.data.level = newLevel;
+      this.logActivity('level_up', `Leveled Up! Reached Level ${newLevel} 🚀`);
+      if (this.bridge && this.bridge.showNotification) {
+        this.bridge.showNotification('Level Up! 🚀', `Congratulations, you reached Level ${newLevel}!`);
+      }
+    }
+    this.checkBadges();
+    this.save();
+  }
+
+  addStudyTime(minutes = 1) {
+    this.data.studyTimeMinutes = (this.data.studyTimeMinutes || 0) + minutes;
+    this.data.todayStudyMinutes = (this.data.todayStudyMinutes || 0) + minutes;
+    
+    // Add to today's day of week index (0=Mon ... 6=Sun)
+    const day = (new Date().getDay() + 6) % 7;
+    if (!this.data.weeklyActivity) this.data.weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
+    this.data.weeklyActivity[day] = (this.data.weeklyActivity[day] || 0) + minutes;
+    this.checkBadges();
+    this.save();
+  }
+
+  checkBadges() {
+    if (!this.data.badges) this.data.badges = [];
+    const earned = new Set(this.data.badges);
+
+    if ((this.data.completedLessons || []).length >= 1 && !earned.has('first_step')) {
+      this.data.badges.push('first_step');
+      this.logActivity('badge_unlocked', 'Badge Unlocked: First Step! 🏅');
+    }
+    if ((this.data.completedLessons || []).length >= 10 && !earned.has('scholar')) {
+      this.data.badges.push('scholar');
+      this.logActivity('badge_unlocked', 'Badge Unlocked: Neural Scholar! 🎓');
+    }
+    if ((this.data.quizAttempts || []).length >= 3 && !earned.has('quiz_master')) {
+      this.data.badges.push('quiz_master');
+      this.logActivity('badge_unlocked', 'Badge Unlocked: Assessment Pro! 🎯');
+    }
+    if ((this.data.streak && this.data.streak.count >= 3) && !earned.has('streak_flame')) {
+      this.data.badges.push('streak_flame');
+      this.logActivity('badge_unlocked', 'Badge Unlocked: Unstoppable Streak! 🔥');
+    }
+    if ((this.data.notes || []).length >= 5 && !earned.has('scribe')) {
+      this.data.badges.push('scribe');
+      this.logActivity('badge_unlocked', 'Badge Unlocked: Master Scribe! 📝');
+    }
+  }
+
   recordQuizAttempt(moduleId, score, total, details = {}) {
     if (!this.data.quizAttempts) this.data.quizAttempts = [];
+    const percentage = Math.round((score / total) * 100);
     const attempt = {
       id: 'quiz_' + Date.now(),
       moduleId,
       score,
       total,
-      percentage: Math.round((score / total) * 100),
+      percentage,
       date: new Date().toISOString(),
       details
     };
     this.data.quizAttempts.unshift(attempt);
-    this.logActivity('quiz_attempt', `Completed quiz for ${moduleId}: ${score}/${total} (${attempt.percentage}%)`);
+    
+    // Award XP based on quiz result
+    const xpEarned = Math.round((score / total) * 100);
+    this.addXP(xpEarned, `Quiz finished: ${score}/${total}`);
+    this.logActivity('quiz_attempt', `Completed quiz for ${moduleId}: ${score}/${total} (${percentage}%)`);
     this.save();
     return attempt;
   }
@@ -166,7 +232,14 @@ class ProgressManager {
       quizCount: attempts.length,
       streakDays: (this.data.streak && this.data.streak.count) || 0,
       recentActivities: (this.data.activities || []).slice(0, 10),
-      notesCount: (this.data.notes || []).length
+      notesCount: (this.data.notes || []).length,
+      xp: this.data.xp || 0,
+      level: this.data.level || 1,
+      studyTimeMinutes: this.data.studyTimeMinutes || 0,
+      todayStudyMinutes: this.data.todayStudyMinutes || 0,
+      dailyGoalMinutes: this.data.dailyGoalMinutes || 30,
+      badges: this.data.badges || [],
+      weeklyActivity: this.data.weeklyActivity || [0, 0, 0, 0, 0, 0, 0]
     };
   }
 }

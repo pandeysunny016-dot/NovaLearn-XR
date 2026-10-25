@@ -65,6 +65,17 @@ class CubeDemo {
     if (autoRotate !== undefined) this.autoRotate = autoRotate;
   }
 
+  reset() {
+    this.pos = { x: 0, y: 0, z: 0 };
+    this.rot = { x: 25, y: 35, z: 0 };
+    this.scale = { x: 1, y: 1, z: 1 };
+    this.color = '#00d4ff';
+    this.wireframe = false;
+    this.lightIntensity = 0.8;
+    this.autoRotate = true;
+    this.render();
+  }
+
   rotatePoint(p, rx, ry, rz) {
     let [x, y, z] = p;
     const radX = (rx * Math.PI) / 180;

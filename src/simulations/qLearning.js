@@ -276,6 +276,39 @@ class QLearningSimulator {
       <div class="stat-pill"><span>Current Pos:</span> <strong>(${this.agentPos.x}, ${this.agentPos.y})</strong></div>
       <div class="stat-pill"><span>Last Reward:</span> <strong>${this.rewardHistory[this.rewardHistory.length - 1] || 0}</strong></div>
     `;
+
+    // Render live Reward mini-chart if container exists
+    const chartCanvas = document.getElementById('ql-chart-canvas');
+    if (chartCanvas && this.rewardHistory.length > 1) {
+      const cctx = chartCanvas.getContext('2d');
+      const cw = chartCanvas.width;
+      const ch = chartCanvas.height;
+      cctx.clearRect(0, 0, cw, ch);
+
+      cctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      cctx.beginPath();
+      cctx.moveTo(0, ch / 2);
+      cctx.lineTo(cw, ch / 2);
+      cctx.stroke();
+
+      cctx.strokeStyle = '#00d4ff';
+      cctx.lineWidth = 2;
+      cctx.beginPath();
+      const stepX = cw / (this.rewardHistory.length - 1);
+      this.rewardHistory.forEach((r, idx) => {
+        // Map rewards (-40 to 30) to canvas height
+        const normY = ch - ((r + 40) / 70) * ch;
+        if (idx === 0) cctx.moveTo(0, normY);
+        else cctx.lineTo(idx * stepX, normY);
+      });
+      cctx.stroke();
+    }
+  }
+
+  setParameters({ alpha, gamma, epsilon }) {
+    if (alpha !== undefined) this.alpha = alpha;
+    if (gamma !== undefined) this.gamma = gamma;
+    if (epsilon !== undefined) this.epsilon = epsilon;
   }
 }
 

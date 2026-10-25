@@ -22,6 +22,7 @@ class WhackAMoleGame {
     this.score = 0;
     this.timeLeft = 30;
     this.isPlaying = false;
+    this.difficulty = 'normal'; // 'easy', 'normal', 'hard'
     this.spawnInterval = 1000;
     this.lastSpawn = 0;
     this.lastTime = performance.now();
@@ -73,15 +74,28 @@ class WhackAMoleGame {
     }
   }
 
-  start() {
+  start(difficulty = 'normal') {
+    this.difficulty = difficulty;
     this.score = 0;
     this.timeLeft = 30;
     this.isPlaying = true;
     this.holes.forEach(h => { h.active = false; });
     this.particles = [];
-    this.updateHUD();
 
+    if (difficulty === 'easy') {
+      this.spawnInterval = 1200;
+    } else if (difficulty === 'hard') {
+      this.spawnInterval = 700;
+    } else {
+      this.spawnInterval = 950;
+    }
+
+    this.updateHUD();
     this.gameLoop();
+  }
+
+  restart() {
+    this.start(this.difficulty);
   }
 
   gameLoop() {
@@ -106,8 +120,8 @@ class WhackAMoleGame {
         if (inactiveHoles.length > 0) {
           const chosen = inactiveHoles[Math.floor(Math.random() * inactiveHoles.length)];
           chosen.active = true;
-          chosen.timer = 1.4; // seconds active
-          chosen.isBomb = Math.random() < 0.25; // 25% bomb chance
+          chosen.timer = this.difficulty === 'easy' ? 1.8 : this.difficulty === 'hard' ? 0.9 : 1.3;
+          chosen.isBomb = Math.random() < (this.difficulty === 'hard' ? 0.35 : 0.2);
         }
       }
 

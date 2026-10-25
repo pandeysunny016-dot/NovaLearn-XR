@@ -29,6 +29,13 @@ class ProgressManager {
         if (res && res.success && res.data) {
           this.data = Object.assign(this.data, res.data);
         }
+      } else if (typeof localStorage !== 'undefined') {
+        const local = localStorage.getItem('neuralverse_data');
+        if (local) {
+          try {
+            this.data = Object.assign(this.data, JSON.parse(local));
+          } catch (e) {}
+        }
       }
       this.updateStreak();
       await this.save();
@@ -48,6 +55,10 @@ class ProgressManager {
   async save() {
     if (this.bridge && this.bridge.saveData) {
       await this.bridge.saveData(this.data);
+    } else if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('neuralverse_data', JSON.stringify(this.data));
+      } catch (e) {}
     }
     this.notify();
   }

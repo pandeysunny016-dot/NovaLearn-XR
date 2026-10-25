@@ -82,17 +82,33 @@ class NotesManager {
     });
   }
 
+  downloadBlob(content, filename, type) {
+    if (typeof document === 'undefined') return;
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async exportNotesNative() {
-    if (!this.bridge || !this.bridge.saveFileDialog) {
-      throw new Error('Native file save dialog not available');
-    }
     const notes = this.getNotes();
-    const payload = {
+    const payload = JSON.stringify({
       app: 'NeuralVerse Studio',
       exportedAt: new Date().toISOString(),
       notesCount: notes.length,
       notes
-    };
+    }, null, 2);
+
+    if (!this.bridge || !this.bridge.saveFileDialog) {
+      this.downloadBlob(payload, `neuralverse_notes_${Date.now()}.json`, 'application/json');
+      this.progressManager.logActivity('notes_export', `Exported ${notes.length} notes (browser download)`);
+      return { success: true };
+    }
 
     const res = await this.bridge.saveFileDialog(payload, `neuralverse_notes_${Date.now()}.json`);
     if (res.success) {
@@ -103,7 +119,6 @@ class NotesManager {
     }
     return res;
   }
-
 
   generateMarkdown(notes) {
     let md = `# NeuralVerse Study Notes Revision\nExported: ${new Date().toLocaleString()}\n\n---\n\n`;
@@ -117,11 +132,14 @@ class NotesManager {
   }
 
   async exportNotesMarkdown() {
-    if (!this.bridge || !this.bridge.saveFileDialog) {
-      throw new Error('Native file save dialog not available');
-    }
     const notes = this.getNotes();
     const md = this.generateMarkdown(notes);
+
+    if (!this.bridge || !this.bridge.saveFileDialog) {
+      this.downloadBlob(md, `neuralverse_notes_${Date.now()}.md`, 'text/markdown');
+      this.progressManager.logActivity('notes_export', `Exported notes as Markdown (browser download)`);
+      return { success: true };
+    }
 
     const res = await this.bridge.saveFileDialog(md, `neuralverse_notes_${Date.now()}.md`);
     if (res.success) {
